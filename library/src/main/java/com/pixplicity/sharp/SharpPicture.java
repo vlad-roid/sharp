@@ -25,7 +25,9 @@ package com.pixplicity.sharp;
 
 import android.graphics.Picture;
 import android.graphics.RectF;
+
 import androidx.annotation.Nullable;
+
 import android.view.View;
 
 /**
@@ -108,7 +110,6 @@ public class SharpPicture {
      *
      * @param view {@link View} that will hold this drawable
      * @return the Drawable.
-     *
      * @deprecated Use {@link #getDrawable()} instead.
      */
     @Deprecated

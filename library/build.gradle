@@ -1,19 +1,79 @@
 apply plugin: 'com.android.library'
+apply plugin: 'com.novoda.bintray-release'
 
+buildscript {
+    repositories {
+        jcenter()
+    }
+    dependencies {
+        classpath 'com.novoda:bintray-release:0.9.1'
+    }
+}
 android {
     compileSdkVersion 29
 
     defaultConfig {
         minSdkVersion 11
         targetSdkVersion 29
+        versionCode 6
+        versionName "1.1.2"
+        archivesBaseName = "$archivesBaseName-$versionName"
     }
 
+    signingConfigs {
+        debug {
+            Properties props = new Properties()
+            try {
+                props.load(new FileInputStream(".signing/debug.properties"))
+                storeFile file('../.signing/debug.jks')
+                storePassword(props['DEBUG_STORE_PASSWORD'])
+                keyAlias(props['DEBUG_KEY_ALIAS'])
+                keyPassword(props['DEBUG_KEY_PASSWORD'])
+            } catch (IOException ignore) {
+                println "Missing debug keystore and/or properties"
+            }
+        }
+        release {
+            Properties props = new Properties()
+            try {
+                props.load(new FileInputStream(".signing/release.properties"))
+                storeFile file('../.signing/release.jks')
+                storePassword(props['RELEASE_STORE_PASSWORD'])
+                keyAlias(props['RELEASE_KEY_ALIAS'])
+                keyPassword(props['RELEASE_KEY_PASSWORD'])
+            } catch (IOException e) {
+                println "Missing release keystore and/or properties"
+                throw e
+            }
+        }
+    }
     buildTypes {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.txt'
+            signingConfig signingConfigs.release
         }
     }
+}
+
+// For building a release variant and uploading to bintray, execute:
+// $ ./gradlew clean build bintrayUpload
+Properties props = new Properties()
+try {
+    props.load(new FileInputStream(".signing/bintray.properties"))
+} catch (IOException ignore) {
+    println "Missing bintray properties; you cannot upload any artifacts"
+}
+publish {
+    userOrg = 'pixplicity'
+    groupId = 'com.pixplicity.sharp'
+    bintrayUser = props['BINTRAY_USER']
+    bintrayKey = props['BINTRAY_KEY']
+    artifactId = 'library'
+    publishVersion = '1.1.2'
+    desc = 'Sharp is a Scalable Vector Graphics (SVG) implementation for Android. It facilitates loading vector graphics as SharpDrawables, and can effectively be used wherever a conventional image would be displayed, whether it be as a background, ImageView source, inside a StateListDrawable or used as composites in a TextView.'
+    website = 'https://github.com/Pixplicity/sharp'
+    licences = ['Apache-2.0']
 }
 
 dependencies {

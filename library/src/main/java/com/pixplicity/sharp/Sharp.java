@@ -44,8 +44,10 @@ import android.graphics.Typeface;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Looper;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+
 import android.text.TextPaint;
 import android.util.Log;
 import android.view.View;
@@ -1170,7 +1172,6 @@ public abstract class Sharp {
             }
             return Integer.parseInt(v);
         }
-
 
         public Integer getColor(String name) {
             String v = getAttr(name);
