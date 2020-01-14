@@ -42,7 +42,7 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 
-import com.github.chrisbanes.photoview.PhotoView;
+import com.jsibbold.zoomage.ZoomageView;
 import com.pixplicity.sharp.OnSvgElementListener;
 import com.pixplicity.sharp.Sharp;
 import com.pixplicity.sharp.SharpDrawable;
@@ -52,7 +52,7 @@ import java.util.Random;
 
 public class SvgDemoActivity extends AppCompatActivity {
 
-    private PhotoView mImageView;
+    private ZoomageView mImageView;
     private Button mButton;
 
     private Sharp mSvg;
@@ -69,6 +69,8 @@ public class SvgDemoActivity extends AppCompatActivity {
 
         mImageView = findViewById(R.id.iv_image);
         mButton = findViewById(R.id.bt_button);
+
+        Sharp.setLogLevel(Sharp.LOG_LEVEL_INFO);
 
         mSvg = Sharp.loadResource(getResources(), R.raw.cartman);
         // If you want to load typefaces from assets:

@@ -45,6 +45,7 @@ import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Looper;
 
+import androidx.annotation.IntDef;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
@@ -94,6 +95,14 @@ public abstract class Sharp {
 
     static final String TAG = Sharp.class.getSimpleName();
 
+    public static final int LOG_LEVEL_ERROR = 1;
+    public static final int LOG_LEVEL_WARN = 2;
+    public static final int LOG_LEVEL_INFO = 3;
+    static int LOG_LEVEL = LOG_LEVEL_ERROR;
+
+    @IntDef({LOG_LEVEL_ERROR, LOG_LEVEL_WARN, LOG_LEVEL_INFO})
+    public @interface LogLevel {}
+
     private static String sAssumedUnit;
     private static HashMap<String, String> sTextDynamic = null;
 
@@ -128,6 +137,10 @@ public abstract class Sharp {
             }
             return null;
         }
+    }
+
+    public static void setLogLevel(@LogLevel int logLevel) {
+        LOG_LEVEL = logLevel;
     }
 
     @SuppressWarnings("unused")
@@ -1302,7 +1315,9 @@ public abstract class Sharp {
                     int magicInt = (magic[0] + (((int) magic[1]) << 8)) & 0xffff;
                     in.reset();
                     if (r == 2 && magicInt == GZIPInputStream.GZIP_MAGIC) {
-                        Log.d(TAG, "SVG is gzipped");
+                        if (LOG_LEVEL >= LOG_LEVEL_INFO) {
+                            Log.d(TAG, "SVG is gzipped");
+                        }
                         in = new GZIPInputStream(in);
                     }
                 }
@@ -1315,7 +1330,9 @@ public abstract class Sharp {
                     sTextDynamic.clear();
                     sTextDynamic = null;
                 }
-                Log.v(TAG, "Parsing complete in " + (System.currentTimeMillis() - start) + " ms.");
+                if (LOG_LEVEL >= LOG_LEVEL_INFO) {
+                    Log.v(TAG, "Parsing complete in " + (System.currentTimeMillis() - start) + " ms.");
+                }
             } catch (IOException | SAXException | ParserConfigurationException e) {
                 Log.e(TAG, "Failed parsing SVG", e);
                 throw new SvgParseException(e);
@@ -1373,7 +1390,7 @@ public abstract class Sharp {
                         }
                         return true;
                     } else {
-                        Log.d(TAG, "Didn't find shader, using black: " + id);
+                        //Log.d(TAG, "Didn't find shader, using black: " + id);
                         mFillPaint.setShader(null);
                         doColor(atts, Color.BLACK, true, mFillPaint);
                         return true;
@@ -1390,7 +1407,9 @@ public abstract class Sharp {
                         doColor(atts, color, true, mFillPaint);
                         return true;
                     } else {
-                        Log.d(TAG, "Unrecognized fill color, using black: " + fillString);
+                        if (LOG_LEVEL >= LOG_LEVEL_WARN) {
+                            Log.w(TAG, "Unrecognized fill color, using black: " + fillString);
+                        }
                         doColor(atts, Color.BLACK, true, mFillPaint);
                         return true;
                     }
@@ -1503,7 +1522,9 @@ public abstract class Sharp {
                         }
                         return true;
                     } else {
-                        Log.d(TAG, "Didn't find shader, using black: " + id);
+                        if (LOG_LEVEL >= LOG_LEVEL_WARN) {
+                            Log.w(TAG, "Didn't find shader, using black: " + id);
+                        }
                         mStrokePaint.setShader(null);
                         doColor(atts, Color.BLACK, true, mStrokePaint);
                         return true;
@@ -1514,7 +1535,9 @@ public abstract class Sharp {
                         doColor(atts, color, false, mStrokePaint);
                         return true;
                     } else {
-                        Log.d(TAG, "Unrecognized stroke color, using black: " + strokeString);
+                        if (LOG_LEVEL >= LOG_LEVEL_WARN) {
+                            Log.w(TAG, "Unrecognized stroke color, using black: " + strokeString);
+                        }
                         doColor(atts, Color.BLACK, true, mStrokePaint);
                         return true;
                     }
@@ -1594,7 +1617,9 @@ public abstract class Sharp {
                     positions[i] = gradient.mPositions.get(i);
                 }
                 if (colors.length == 0) {
-                    Log.w(TAG, "bad gradient, id=" + gradient.mId);
+                    if (LOG_LEVEL >= LOG_LEVEL_WARN) {
+                        Log.w(TAG, "Failed to parse gradient for id " + gradient.mId);
+                    }
                 }
                 if (gradient.mIsLinear) {
                     gradient.mShader = new LinearGradient(gradient.mX1, gradient.mY1, gradient.mX2, gradient.mY2, colors, positions, gradient.mTileMode);
@@ -1734,7 +1759,9 @@ public abstract class Sharp {
                 if (width < 0 || height < 0) {
                     width = 100;
                     height = 100;
-                    Log.w(TAG, "element '" + localName + "' does not provide its dimensions; using " + width + "x" + height);
+                    if (LOG_LEVEL >= LOG_LEVEL_WARN) {
+                        Log.w(TAG, "Element '" + localName + "' does not provide its dimensions; using " + width + "x" + height);
+                    }
                 }
                 mBounds = new RectF(x, y, x + width, y + height);
                 //Log.d(TAG, "svg boundaries: " + mBounds);
@@ -1769,14 +1796,12 @@ public abstract class Sharp {
                 }
                 if (hidden) {
                     hiddenLevel++;
-                    //Log.d(TAG, "Hidden up: " + hiddenLevel);
                 }
                 // Go in to hidden mode if display is "none"
                 if ("none".equals(props.getString("display"))) {
                     if (!hidden) {
                         hidden = true;
                         hiddenLevel = 1;
-                        //Log.d(TAG, "Hidden up: " + hiddenLevel);
                     }
                 }
 
@@ -1996,6 +2021,11 @@ public abstract class Sharp {
                 mTextStack.push(new SvgText(atts, mTextStack.isEmpty() ? null : mTextStack.peek()));
             } else if (!hidden && localName.equals("tspan")) {
                 mTextStack.push(new SvgText(atts, mTextStack.isEmpty() ? null : mTextStack.peek()));
+            } else if (!hidden && localName.equals("clipPath")) {
+                hide();
+                if (LOG_LEVEL >= LOG_LEVEL_WARN) {
+                    Log.w(TAG, "Unsupported SVG command: " + localName);
+                }
             } else if (!hidden) {
                 switch (localName) {
                     case "metadata":
@@ -2003,9 +2033,20 @@ public abstract class Sharp {
                         mReadIgnoreStack.push(localName);
                         break;
                     default:
-                        Log.w(TAG, "Unrecognized SVG command: " + localName);
+                        if (LOG_LEVEL >= LOG_LEVEL_WARN) {
+                            Log.w(TAG, "Unrecognized SVG command: " + localName);
+                        }
                         break;
                 }
+            }
+        }
+
+        private void hide() {
+            if (!hidden) {
+                hidden = true;
+                hiddenLevel = 1;
+            } else {
+                hiddenLevel++;
             }
         }
 
@@ -2059,13 +2100,7 @@ public abstract class Sharp {
                         boundsMode = false;
                     }
                     // Break out of hidden mode
-                    if (hidden) {
-                        hiddenLevel--;
-                        //Log.d(TAG, "Hidden down: " + hiddenLevel);
-                        if (hiddenLevel == 0) {
-                            hidden = false;
-                        }
-                    }
+                    unhide();
                     // Clear gradient map
                     //gradientRefMap.clear();
                     popTransform();
@@ -2077,6 +2112,19 @@ public abstract class Sharp {
                     // Restore the previous canvas
                     mCanvas.restore();
                     break;
+                case "clipPath":
+                    // Break out of hidden mode
+                    unhide();
+                    break;
+            }
+        }
+
+        private void unhide() {
+            if (hidden) {
+                hiddenLevel--;
+                if (hiddenLevel == 0) {
+                    hidden = false;
+                }
             }
         }
 
@@ -2337,7 +2385,9 @@ public abstract class Sharp {
                     String typefaceFile = "fonts/" + family + ".ttf";
                     try {
                         plain = Typeface.createFromAsset(assetManager, typefaceFile);
-                        Log.d(TAG, "loaded typeface from assets: " + typefaceFile);
+                        if (LOG_LEVEL >= LOG_LEVEL_INFO) {
+                            Log.d(TAG, "Loaded typeface from assets: " + typefaceFile);
+                        }
                     } catch (RuntimeException e) {
                         boolean found = true;
                         try {
@@ -2349,12 +2399,18 @@ public abstract class Sharp {
                                 }
                             }
                         } catch (IOException e1) {
-                            Log.e(TAG, "Failed listing assets directory for /fonts", e);
+                            if (LOG_LEVEL >= LOG_LEVEL_ERROR) {
+                                Log.e(TAG, "Failed listing assets directory for /fonts", e);
+                            }
                         }
                         if (!found) {
-                            Log.e(TAG, "Typeface is missing from assets: " + typefaceFile);
+                            if (LOG_LEVEL >= LOG_LEVEL_ERROR) {
+                                Log.e(TAG, "Typeface is missing from assets: " + typefaceFile);
+                            }
                         } else {
-                            Log.e(TAG, "Failed to create typeface from assets: " + typefaceFile, e);
+                            if (LOG_LEVEL >= LOG_LEVEL_ERROR) {
+                                Log.e(TAG, "Failed to create typeface from assets: " + typefaceFile, e);
+                            }
                         }
                         plain = null;
                     }
@@ -2363,8 +2419,10 @@ public abstract class Sharp {
                         return Typeface.create(plain, styleParam);
                     }
                 } else {
-                    Log.e(TAG, "Typefaces can only be loaded if assets are provided; " +
-                            "invoke " + Sharp.class.getSimpleName() + " with .withAssets()");
+                    if (LOG_LEVEL >= LOG_LEVEL_ERROR) {
+                        Log.e(TAG, "Typefaces can only be loaded if assets are provided; " +
+                                "invoke " + Sharp.class.getSimpleName() + " with .withAssets()");
+                    }
                 }
             }
             if (defaultTypeface == null) {

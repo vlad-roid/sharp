@@ -111,7 +111,7 @@ public class SharpDrawable extends PictureDrawable {
                     // creates a new mutable bitmap
                     int w = (int) (bounds.width() * mCacheScale);
                     int h = (int) (bounds.height() * mCacheScale);
-                    Log.v(TAG, "cache bitmap " + w + "x" + h);
+                    //Log.v(TAG, "cache bitmap " + w + "x" + h);
                     mCacheBitmap = Bitmap.createBitmap(
                             w,
                             h,
@@ -132,8 +132,6 @@ public class SharpDrawable extends PictureDrawable {
             if (canvas != null) {
                 save(canvas);
                 canvas.clipRect(bounds);
-                Log.v(TAG, "canvas " + canvas.getWidth() + "x" + canvas.getHeight());
-                Log.v(TAG, "bounds " + bounds.toString());
                 canvas.translate(bounds.left, bounds.top);
                 onBeforeScaleAndDraw(canvas, picture, bounds);
                 canvas.scale(mScaleX, mScaleY, 0, 0);
@@ -150,7 +148,9 @@ public class SharpDrawable extends PictureDrawable {
                 parentCanvas.restore();
             }
         }
-        Log.v(TAG, "Drawing " + hashCode() + " complete in " + (System.currentTimeMillis() - start) + " ms.");
+        if (Sharp.LOG_LEVEL >= Sharp.LOG_LEVEL_INFO) {
+            Log.v(TAG, "Drawing " + hashCode() + " complete in " + (System.currentTimeMillis() - start) + " ms.");
+        }
     }
 
     @Override

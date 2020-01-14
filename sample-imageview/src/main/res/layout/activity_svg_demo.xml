@@ -7,10 +7,18 @@
     android:orientation="vertical"
     tools:context=".SvgDemoActivity">
 
-    <com.github.chrisbanes.photoview.PhotoView
+    <com.jsibbold.zoomage.ZoomageView
         android:id="@+id/iv_image"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"/>
+        android:layout_height="match_parent"
+        app:zoomage_animateOnReset="true"
+        app:zoomage_autoCenter="true"
+        app:zoomage_autoResetMode="UNDER"
+        app:zoomage_maxScale="10"
+        app:zoomage_minScale="0.5"
+        app:zoomage_restrictBounds="false"
+        app:zoomage_translatable="true"
+        app:zoomage_zoomable="true" />
 
     <androidx.appcompat.widget.Toolbar
         android:id="@+id/toolbar"
