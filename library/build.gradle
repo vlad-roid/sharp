@@ -22,29 +22,29 @@ android {
 
     signingConfigs {
         debug {
-            Properties props = new Properties()
-            try {
-                props.load(new FileInputStream(".signing/debug.properties"))
-                storeFile file('../.signing/debug.jks')
-                storePassword(props['DEBUG_STORE_PASSWORD'])
-                keyAlias(props['DEBUG_KEY_ALIAS'])
-                keyPassword(props['DEBUG_KEY_PASSWORD'])
-            } catch (IOException ignore) {
-                println "Missing debug keystore and/or properties"
-            }
+//            Properties props = new Properties()
+//            try {
+//                props.load(new FileInputStream(".signing/debug.properties"))
+//                storeFile file('../.signing/debug.jks')
+//                storePassword(props['DEBUG_STORE_PASSWORD'])
+//                keyAlias(props['DEBUG_KEY_ALIAS'])
+//                keyPassword(props['DEBUG_KEY_PASSWORD'])
+//            } catch (IOException ignore) {
+//                println "Missing debug keystore and/or properties"
+//            }
         }
         release {
-            Properties props = new Properties()
-            try {
-                props.load(new FileInputStream(".signing/release.properties"))
-                storeFile file('../.signing/release.jks')
-                storePassword(props['RELEASE_STORE_PASSWORD'])
-                keyAlias(props['RELEASE_KEY_ALIAS'])
-                keyPassword(props['RELEASE_KEY_PASSWORD'])
-            } catch (IOException e) {
-                println "Missing release keystore and/or properties"
-                throw e
-            }
+//            Properties props = new Properties()
+//            try {
+//                props.load(new FileInputStream(".signing/release.properties"))
+//                storeFile file('../.signing/release.jks')
+//                storePassword(props['RELEASE_STORE_PASSWORD'])
+//                keyAlias(props['RELEASE_KEY_ALIAS'])
+//                keyPassword(props['RELEASE_KEY_PASSWORD'])
+//            } catch (IOException e) {
+//                println "Missing release keystore and/or properties"
+//                throw e
+//            }
         }
     }
     buildTypes {
